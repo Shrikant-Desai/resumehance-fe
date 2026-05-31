@@ -43,6 +43,17 @@ function AppContent() {
   const { token, isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+    } else {
+      document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  useEffect(() => {
     if (token && !isAuthenticated) {
       dispatch(fetchCurrentUser());
     }

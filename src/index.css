@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
+  --color-slate-850: #1a2333;
+  --color-slate-650: #475569;
+
   --color-surface-bright: #f8f9fa;
   --color-tertiary-fixed: #ffddb8;
   --color-surface-container-low: #f3f4f5;
@@ -90,4 +95,40 @@ body {
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+@layer base {
+  .dark {
+    --color-surface: #0a0e17;
+    --color-background: #0a0e17;
+    --color-on-surface: #f1f5f9;
+    --color-on-background: #f1f5f9;
+    --color-on-surface-variant: #94a3b8;
+    --color-surface-container-lowest: #070a13;
+    --color-surface-container-low: #0f172a;
+    --color-surface-container: #151f32;
+    --color-surface-container-high: #1e293b;
+    --color-surface-container-highest: #334155;
+    --color-surface-bright: #1e293b;
+    --color-surface-dim: #0e1320;
+    --color-outline: #475569;
+    --color-outline-variant: #334155;
+    --color-primary: #818cf8;
+    --color-primary-container: #1e1b4b;
+    --color-on-primary-container: #e0e7ff;
+    --color-on-primary: #0f172a;
+    --color-secondary: #34d399;
+    --color-secondary-container: #064e3b;
+    --color-on-secondary-container: #d1fae5;
+    --color-on-secondary: #022c22;
+  }
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .bg-primary-gradient {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
 }

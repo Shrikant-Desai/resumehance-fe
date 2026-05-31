@@ -2,7 +2,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 const SettingsPage = () => {
-  const [themeMode, setThemeMode] = useState("light");
+  const [themeMode, setThemeMode] = useState(() => {
+    return localStorage.getItem("theme") || "light";
+  });
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
 
@@ -13,7 +15,15 @@ const SettingsPage = () => {
 
   const handleToggleTheme = (mode) => {
     setThemeMode(mode);
-    toast.success(`Theme mode updated to ${mode}! (UI Only)`);
+    localStorage.setItem("theme", mode);
+    if (mode === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+    } else {
+      document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+    }
+    toast.success(`Theme mode updated to ${mode}!`);
   };
 
   return (
