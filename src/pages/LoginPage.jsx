@@ -35,10 +35,11 @@ const LoginPage = () => {
   const onSubmit = async (data) => {
     try {
       await dispatch(loginUser(data)).unwrap();
-      toast.success("Welcome back to Curator AI!");
+      toast.success("Welcome back to Resumehance!");
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err || "Login failed. Please check your credentials.");
+      // err is the string message stored by rejectWithValue in authSlice
+      toast.error(typeof err === "string" ? err : "Login failed. Please check your credentials.");
     }
   };
 

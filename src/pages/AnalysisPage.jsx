@@ -30,10 +30,12 @@ const AnalysisPage = () => {
   const runMutation = useMutation({
     mutationFn: runAnalysis,
     onSuccess: (data) => {
+      // data is the unwrapped AnalysisRunResponse from the backend envelope
       toast.success("Analysis complete! Redirecting to results...");
-      navigate(`/analysis/${data.id || data.analysis_id || data.analysis?.id}`);
+      navigate(`/analysis/${data.id || data.analysis_id}`);
     },
     onError: (err) => {
+      // err is the normalized error: { message, code, details, status }
       toast.error(
         err.message || "Failed to execute analysis. Please try again.",
       );

@@ -1,15 +1,17 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import apiClient from "../api/client";
 
-// Async Thunks
+// ─── Async Thunks ──────────────────────────────────────────────────────────
+
 export const signupUser = createAsyncThunk(
   "auth/signup",
   async ({ email, password }, { rejectWithValue }) => {
     try {
+      // Backend envelope: { success: true, message: "...", data: { id, email, ... } }
       const response = await apiClient.post("/auth/signup", { email, password });
-      return response.data;
+      return response.data; // full envelope — success message used in UI
     } catch (error) {
-      return rejectWithValue(error.message || "Signup failed");
+      return rejectWithValue(error.message || "Signup failed.");
     }
   }
 );
@@ -18,18 +20,19 @@ export const loginUser = createAsyncThunk(
   "auth/login",
   async ({ email, password }, { dispatch, rejectWithValue }) => {
     try {
+      // Backend login returns: { access_token, token_type } directly (NOT wrapped in data envelope)
       const response = await apiClient.post("/auth/login", { email, password });
       const { access_token } = response.data;
-      
+
       // Save token in localStorage
       localStorage.setItem("resumehance_token", access_token);
-      
-      // Fetch user info immediately after successful login
+
+      // Fetch user profile immediately after successful login
       const userDetails = await dispatch(fetchCurrentUser()).unwrap();
-      
+
       return { token: access_token, user: userDetails };
     } catch (error) {
-      return rejectWithValue(error.message || "Login failed");
+      return rejectWithValue(error.message || "Login failed.");
     }
   }
 );
@@ -38,15 +41,17 @@ export const fetchCurrentUser = createAsyncThunk(
   "auth/fetchCurrentUser",
   async (_, { rejectWithValue }) => {
     try {
+      // Backend envelope: { success: true, message: "...", data: { id, email, ... } }
       const response = await apiClient.get("/auth/me");
-      return response.data;
+      // Unwrap the data field from the envelope
+      return response.data?.data || response.data;
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to load user profile");
+      return rejectWithValue(error.message || "Failed to load user profile.");
     }
   }
 );
 
-// Initial State
+// ─── Initial State ─────────────────────────────────────────────────────────
 const initialState = {
   user: null,
   token: localStorage.getItem("resumehance_token") || null,
@@ -54,9 +59,10 @@ const initialState = {
   loading: false,
   error: null,
   signupSuccess: false,
+  signupMessage: null,
 };
 
-// Slice
+// ─── Slice ─────────────────────────────────────────────────────────────────
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -68,33 +74,37 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.signupSuccess = false;
+      state.signupMessage = null;
     },
     clearError: (state) => {
       state.error = null;
     },
     resetSignupSuccess: (state) => {
       state.signupSuccess = false;
-    }
+      state.signupMessage = null;
+    },
   },
   extraReducers: (builder) => {
     builder
-      // Signup
+      // ── Signup ──────────────────────────────────────────────────────────
       .addCase(signupUser.pending, (state) => {
         state.loading = true;
         state.error = null;
         state.signupSuccess = false;
       })
-      .addCase(signupUser.fulfilled, (state) => {
+      .addCase(signupUser.fulfilled, (state, action) => {
         state.loading = false;
         state.signupSuccess = true;
+        // Capture the backend success message (e.g. "User created successfully.")
+        state.signupMessage = action.payload?.message || "Account created successfully!";
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
         state.signupSuccess = false;
       })
-      
-      // Login
+
+      // ── Login ───────────────────────────────────────────────────────────
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -110,8 +120,8 @@ const authSlice = createSlice({
         state.error = action.payload;
         state.isAuthenticated = false;
       })
-      
-      // Fetch User
+
+      // ── Fetch Current User ───────────────────────────────────────────────
       .addCase(fetchCurrentUser.pending, (state) => {
         state.loading = true;
       })

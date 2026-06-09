@@ -34,18 +34,20 @@ const SignupPage = () => {
 
   const onSubmit = async (data) => {
     try {
-      // 1. Signup user
-      await dispatch(signupUser(data)).unwrap();
-      toast.success("Account created successfully!");
-      
+      // 1. Signup user — backend returns { success, message, data: { user } }
+      const result = await dispatch(signupUser(data)).unwrap();
+      const successMessage = result?.message || "Account created successfully!";
+      toast.success(successMessage);
+
       // 2. Automatically log in user
       await dispatch(loginUser({ email: data.email, password: data.password })).unwrap();
       toast.success("Logged in automatically!");
-      
+
       dispatch(resetSignupSuccess());
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err || "Signup failed. Please try again.");
+      // err is the string message stored by rejectWithValue in authSlice
+      toast.error(typeof err === "string" ? err : "Signup failed. Please try again.");
     }
   };
 

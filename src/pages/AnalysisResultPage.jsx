@@ -37,6 +37,11 @@ const AnalysisResultPage = () => {
   }
 
   if (error || !analysis) {
+    // error is the normalized object from client.js: { message, code, details, status }
+    const errorMessage =
+      error?.message || "Verify the ID is correct and belongs to your profile.";
+    const errorCode = error?.code;
+
     return (
       <div className="text-center py-20 space-y-4">
         <span className="material-symbols-outlined text-5xl text-rose-500">
@@ -45,10 +50,12 @@ const AnalysisResultPage = () => {
         <h3 className="font-headline text-lg font-bold text-slate-700 dark:text-slate-350">
           Failed to load analysis results
         </h3>
-        <p className="text-xs text-on-surface-variant">
-          {error?.message ||
-            "Verify the ID is correct and belongs to your profile."}
-        </p>
+        {errorCode && (
+          <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-rose-50 dark:bg-rose-950/30 text-rose-500 px-2.5 py-1 rounded">
+            {errorCode}
+          </span>
+        )}
+        <p className="text-xs text-on-surface-variant">{errorMessage}</p>
         <button
           onClick={() => navigate("/dashboard")}
           className="bg-primary-gradient text-white px-6 py-2 rounded-xl text-xs font-bold shadow-md cursor-pointer"

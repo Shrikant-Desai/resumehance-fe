@@ -29,6 +29,7 @@ const JobsPage = () => {
   const createMutation = useMutation({
     mutationFn: createJobDescription,
     onSuccess: (data) => {
+      // data is the unwrapped job description object from the backend envelope
       toast.success("Job description parsed successfully!");
       queryClient.invalidateQueries(["jobs"]);
       setSelectedJobId(data.id || data.jd_id);
@@ -37,6 +38,7 @@ const JobsPage = () => {
       setJdText("");
     },
     onError: (err) => {
+      // err is the normalized error: { message, code, details, status }
       toast.error(err.message || "Failed to parse job description. Please try again.");
     }
   });

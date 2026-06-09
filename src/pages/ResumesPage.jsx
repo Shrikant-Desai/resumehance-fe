@@ -27,11 +27,13 @@ const ResumesPage = () => {
   const uploadMutation = useMutation({
     mutationFn: uploadResume,
     onSuccess: (data) => {
+      // data is the unwrapped resume object from the backend envelope
       toast.success("Resume parsed and uploaded successfully!");
       queryClient.invalidateQueries(["resumes"]);
       setSelectedResumeId(data.id || data.resume_id);
     },
     onError: (err) => {
+      // err is the normalized error: { message, code, details, status }
       toast.error(err.message || "Failed to parse resume PDF. Please try again.");
     }
   });
