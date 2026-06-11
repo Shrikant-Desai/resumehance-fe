@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { signupUser, loginUser, clearError, resetSignupSuccess } from "../store/authSlice";
 import { toast } from "sonner";
+import { Sparkles, AlertCircle, AlertTriangle, Eye, EyeOff } from "lucide-react";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -46,24 +47,23 @@ const SignupPage = () => {
       dispatch(resetSignupSuccess());
       navigate("/dashboard");
     } catch (err) {
-      // err is the string message stored by rejectWithValue in authSlice
       toast.error(typeof err === "string" ? err : "Signup failed. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface px-6 select-none">
-      <div className="w-full max-w-md bg-surface-container-lowest dark:bg-slate-900 rounded-2xl p-8 shadow-xl border border-slate-100 dark:border-slate-800 transition-all">
+    <div className="min-h-screen flex items-center justify-center bg-surface px-4 sm:px-6 select-none">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 shadow-xl border border-slate-100 dark:border-slate-800 transition-all">
         {/* Brand Header */}
         <div className="text-center mb-8 flex flex-col items-center gap-3">
           <div className="w-12 h-12 bg-primary-gradient rounded-xl flex items-center justify-center text-white shadow-md">
-            <span className="material-symbols-outlined text-2xl">auto_awesome</span>
+            <Sparkles size={22} />
           </div>
           <div>
             <h2 className="text-2xl font-headline font-extrabold text-indigo-700 dark:text-indigo-300 tracking-tight">
               Create Account
             </h2>
-            <p className="text-xs text-on-surface-variant mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Join Curator AI to analyze and optimize your resumes.
             </p>
           </div>
@@ -72,14 +72,14 @@ const SignupPage = () => {
         {/* Signup Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-left">
           {error && (
-            <div className="p-3 bg-error-container text-on-error-container text-xs font-semibold rounded-lg flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">error</span>
+            <div className="p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 text-xs font-semibold rounded-lg flex items-center gap-2">
+              <AlertCircle size={14} className="shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
               Email Address
             </label>
             <input
@@ -92,21 +92,21 @@ const SignupPage = () => {
                   message: "Invalid email address",
                 },
               })}
-              className="w-full px-4 py-3 bg-surface-container-low dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 dark:text-slate-200 outline-none transition-all"
+              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-slate-200 outline-none transition-all"
             />
             {errors.email && (
-              <p className="mt-1.5 text-xs text-error font-semibold flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">warning</span>
+              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 font-semibold flex items-center gap-1">
+                <AlertTriangle size={12} className="shrink-0" />
                 {errors.email.message}
               </p>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
               Password
             </label>
-            
+
             <div className="relative flex items-center">
               <input
                 type={showPassword ? "text" : "password"}
@@ -126,25 +126,24 @@ const SignupPage = () => {
                       /[0-9]/.test(value) || "Must contain at least one digit",
                   },
                 })}
-                className="w-full px-4 py-3 bg-surface-container-low dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary/20 dark:text-slate-200 outline-none transition-all"
+                className="w-full px-4 py-3 pr-11 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-slate-200 outline-none transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 text-slate-400 hover:text-slate-600 focus:outline-none flex items-center"
+                className="absolute right-3 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded transition-colors"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                <span className="material-symbols-outlined text-lg">
-                  {showPassword ? "visibility_off" : "visibility"}
-                </span>
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {errors.password && (
-              <p className="mt-1.5 text-xs text-error font-semibold flex items-center gap-1">
-                <span className="material-symbols-outlined text-xs">warning</span>
+              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400 font-semibold flex items-center gap-1">
+                <AlertTriangle size={12} className="shrink-0" />
                 {errors.password.message}
               </p>
             )}
-            <p className="mt-2 text-[10px] text-on-surface-variant font-medium">
+            <p className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 font-medium">
               Must contain 8+ characters with uppercase, lowercase, and a digit.
             </p>
           </div>
@@ -155,7 +154,7 @@ const SignupPage = () => {
             className="w-full bg-primary-gradient text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-95 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+              <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
             ) : (
               <span>Create Account</span>
             )}
@@ -163,7 +162,7 @@ const SignupPage = () => {
         </form>
 
         <div className="mt-8 text-center border-t border-slate-100 dark:border-slate-800/80 pt-6">
-          <p className="text-xs text-on-surface-variant">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Already have an account?{" "}
             <Link to="/login" className="text-primary font-bold hover:underline">
               Log In

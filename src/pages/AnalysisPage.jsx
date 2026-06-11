@@ -5,14 +5,27 @@ import { fetchResumes } from "../api/resume";
 import { fetchJobDescriptions } from "../api/job";
 import { runAnalysis } from "../api/analysis";
 import { toast } from "sonner";
+import {
+  Check,
+  FileText,
+  Briefcase,
+  ArrowRight,
+  CheckCircle2,
+  ChevronLeft,
+  UserX,
+} from "lucide-react";
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   // Stepper state: 1 = Select Resume, 2 = Select Job Description, 3 = Review & Run
-  const [selectedResumeId, setSelectedResumeId] = useState(location.state?.selectedResumeId || null);
-  const [selectedJobId, setSelectedJobId] = useState(location.state?.selectedJobId || null);
+  const [selectedResumeId, setSelectedResumeId] = useState(
+    location.state?.selectedResumeId || null,
+  );
+  const [selectedJobId, setSelectedJobId] = useState(
+    location.state?.selectedJobId || null,
+  );
   const [step, setStep] = useState(location.state?.selectedResumeId ? 2 : 1);
 
   // Queries
@@ -30,21 +43,15 @@ const AnalysisPage = () => {
   const runMutation = useMutation({
     mutationFn: runAnalysis,
     onSuccess: (data) => {
-      // data is the unwrapped AnalysisRunResponse from the backend envelope
       toast.success("Analysis complete! Redirecting to results...");
       navigate(`/analysis/${data.id || data.analysis_id}`);
     },
     onError: (err) => {
-      // err is the normalized error: { message, code, details, status }
-      toast.error(
-        err.message || "Failed to execute analysis. Please try again.",
-      );
+      toast.error(err.message || "Failed to execute analysis. Please try again.");
     },
   });
 
-  const selectedResume = resumes.find(
-    (r) => (r.id || r.resume_id) === selectedResumeId,
-  );
+  const selectedResume = resumes.find((r) => (r.id || r.resume_id) === selectedResumeId);
   const selectedJob = jobs.find((j) => (j.id || j.jd_id) === selectedJobId);
 
   const handleNextStep = () => {
@@ -64,22 +71,15 @@ const AnalysisPage = () => {
   };
 
   const handlePrevStep = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
+    if (step > 1) setStep(step - 1);
   };
 
   const handleRunMatch = () => {
     if (!selectedResumeId || !selectedJobId) {
-      toast.error(
-        "Analysis requires both a selected resume and job description.",
-      );
+      toast.error("Analysis requires both a selected resume and job description.");
       return;
     }
-    runMutation.mutate({
-      resume_id: selectedResumeId,
-      jd_id: selectedJobId,
-    });
+    runMutation.mutate({ resume_id: selectedResumeId, jd_id: selectedJobId });
   };
 
   if (loadingResumes || loadingJobs) {
@@ -92,107 +92,69 @@ const AnalysisPage = () => {
     );
   }
 
+  const steps = [
+    { label: "Select Resume", shortLabel: "Resume" },
+    { label: "Select Target Role", shortLabel: "Role" },
+    { label: "Run Analysis", shortLabel: "Run" },
+  ];
+
   return (
-    <div className="space-y-10 text-left select-none relative">
+    <div className="space-y-8 sm:space-y-10 text-left select-none relative">
       {/* Stepper Wizard Bar */}
-      <section className="mb-12 max-w-4xl mx-auto">
+      <section className="mb-8 sm:mb-12 max-w-2xl mx-auto px-2">
         <div className="flex justify-between items-center relative">
-          <div className="absolute top-1/2 left-0 w-full h-0.5 bg-surface-container-highest dark:bg-slate-800 -translate-y-1/2 z-0"></div>
+          {/* Background track */}
+          <div className="absolute top-5 left-0 w-full h-0.5 bg-slate-200 dark:bg-slate-800 z-0" />
+          {/* Progress fill */}
           <div
-            className="absolute top-1/2 left-0 h-0.5 bg-primary -translate-y-1/2 z-0 transition-all duration-300"
+            className="absolute top-5 left-0 h-0.5 bg-primary z-0 transition-all duration-500"
             style={{ width: step === 1 ? "0%" : step === 2 ? "50%" : "100%" }}
-          ></div>
+          />
 
-          {/* Step 1 Node */}
-          <div className="relative z-10 flex flex-col items-center gap-2">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
-                step > 1
-                  ? "bg-primary text-white"
-                  : step === 1
-                    ? "bg-primary text-white ring-4 ring-primary-fixed"
-                    : "bg-surface-container-highest text-on-surface-variant"
-              }`}
-            >
-              {step > 1 ? (
-                <span className="material-symbols-outlined text-sm">check</span>
-              ) : (
-                "1"
-              )}
-            </div>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider ${
-                step >= 1 ? "text-primary" : "text-on-surface-variant"
-              }`}
-            >
-              Select Resume
-            </span>
-          </div>
-
-          {/* Step 2 Node */}
-          <div className="relative z-10 flex flex-col items-center gap-2">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
-                step > 2
-                  ? "bg-primary text-white"
-                  : step === 2
-                    ? "bg-primary text-white ring-4 ring-primary-fixed"
-                    : "bg-surface-container-highest dark:bg-slate-800 text-on-surface-variant"
-              }`}
-            >
-              {step > 2 ? (
-                <span className="material-symbols-outlined text-sm">check</span>
-              ) : (
-                "2"
-              )}
-            </div>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider ${
-                step >= 2 ? "text-primary" : "text-on-surface-variant"
-              }`}
-            >
-              Select Target Role
-            </span>
-          </div>
-
-          {/* Step 3 Node */}
-          <div className="relative z-10 flex flex-col items-center gap-2">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
-                step === 3
-                  ? "bg-primary text-white ring-4 ring-primary-fixed"
-                  : "bg-surface-container-highest dark:bg-slate-800 text-on-surface-variant"
-              }`}
-            >
-              3
-            </div>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-wider ${
-                step === 3 ? "text-primary" : "text-on-surface-variant"
-              }`}
-            >
-              Run Analysis
-            </span>
-          </div>
+          {steps.map((s, i) => {
+            const stepNum = i + 1;
+            const isCompleted = step > stepNum;
+            const isActive = step === stepNum;
+            return (
+              <div key={s.label} className="relative z-10 flex flex-col items-center gap-2">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
+                    isCompleted
+                      ? "bg-primary text-white"
+                      : isActive
+                        ? "bg-primary text-white ring-4 ring-indigo-100 dark:ring-indigo-950"
+                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                  }`}
+                >
+                  {isCompleted ? <Check size={16} strokeWidth={3} /> : stepNum}
+                </div>
+                <span
+                  className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-center ${
+                    isActive || isCompleted ? "text-primary" : "text-slate-400"
+                  }`}
+                >
+                  <span className="hidden sm:inline">{s.label}</span>
+                  <span className="sm:hidden">{s.shortLabel}</span>
+                </span>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       {/* Main Execution Loader */}
       {runMutation.isPending ? (
-        <section className="bg-surface-container-low dark:bg-slate-900 rounded-2xl p-12 text-center border border-slate-100/30 dark:border-slate-800 max-w-2xl mx-auto flex flex-col items-center justify-center gap-6 shadow-sm min-h-[350px]">
-          <div className="w-16 h-16 rounded-full border-4 border-indigo-150 border-t-primary animate-spin"></div>
+        <section className="bg-white dark:bg-slate-900 rounded-2xl p-8 sm:p-12 text-center border border-slate-100/30 dark:border-slate-800 max-w-2xl mx-auto flex flex-col items-center justify-center gap-6 shadow-sm min-h-[300px] sm:min-h-[350px]">
+          <div className="w-16 h-16 rounded-full border-4 border-indigo-100 dark:border-slate-800 border-t-primary animate-spin" />
           <div className="space-y-2">
-            <h3 className="font-headline text-xl font-bold">
-              AI Curator Aligning Vectors...
-            </h3>
-            <p className="text-xs text-on-surface-variant max-w-sm">
-              Vector-embedding skill lists, performing cosine similarity
-              calculations, and generating your personalized learning roadmap
-              using Gemini.
+            <h3 className="font-headline text-xl font-bold">AI Curator Aligning Vectors...</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm">
+              Vector-embedding skill lists, performing cosine similarity calculations, and
+              generating your personalized learning roadmap using Gemini.
             </p>
           </div>
-          <div className="w-full bg-surface-container-highest dark:bg-slate-800 h-1.5 rounded-full overflow-hidden max-w-xs mt-2">
-            <div className="h-full bg-primary animate-pulse w-4/5 rounded-full"></div>
+          <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden max-w-xs mt-2">
+            <div className="h-full bg-primary animate-pulse w-4/5 rounded-full" />
           </div>
         </section>
       ) : (
@@ -201,27 +163,21 @@ const AnalysisPage = () => {
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-headline text-2xl font-extrabold tracking-tight">
+                <h3 className="font-headline text-xl sm:text-2xl font-extrabold tracking-tight">
                   Select Target Credentials
                 </h3>
-                <p className="text-on-surface-variant text-xs mt-1">
-                  Choose the resume you want to match. Click on a tile to
-                  select.
+                <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
+                  Choose the resume you want to match. Click on a tile to select.
                 </p>
               </div>
 
               {resumes.length === 0 ? (
-                <div className="text-center py-16 bg-surface-container-low dark:bg-slate-900 rounded-2xl border border-slate-100/30 p-6 flex flex-col items-center gap-4">
-                  <span className="material-symbols-outlined text-4xl text-slate-400">
-                    contact_page
-                  </span>
+                <div className="text-center py-12 sm:py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100/30 dark:border-slate-800 p-6 flex flex-col items-center gap-4 shadow-sm">
+                  <UserX size={40} className="text-slate-400" />
                   <div>
-                    <h5 className="font-bold text-sm">
-                      No resumes uploaded yet
-                    </h5>
-                    <p className="text-xs text-on-surface-variant mt-1">
-                      You need to upload at least one resume PDF before running
-                      a match.
+                    <h5 className="font-bold text-sm">No resumes uploaded yet</h5>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      You need to upload at least one resume PDF before running a match.
                     </p>
                   </div>
                   <button
@@ -232,7 +188,7 @@ const AnalysisPage = () => {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {resumes.map((resume) => {
                     const rId = resume.id || resume.resume_id;
                     const isSelected = selectedResumeId === rId;
@@ -240,34 +196,32 @@ const AnalysisPage = () => {
                       <div
                         key={rId}
                         onClick={() => setSelectedResumeId(rId)}
-                        className={`p-5 rounded-xl cursor-pointer transition-all border-2 flex items-start gap-4 hover:scale-[1.01] ${
+                        className={`p-4 sm:p-5 rounded-xl cursor-pointer transition-all border-2 flex items-start gap-4 hover:scale-[1.01] ${
                           isSelected
-                            ? "bg-white dark:bg-slate-850 border-primary shadow-sm"
-                            : "bg-surface-container-low dark:bg-slate-900 border-transparent hover:bg-white dark:hover:bg-slate-850"
+                            ? "bg-white dark:bg-slate-800 border-primary shadow-sm"
+                            : "bg-slate-50 dark:bg-slate-900 border-transparent hover:bg-white dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
                         }`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                             isSelected
                               ? "bg-primary text-white"
-                              : "bg-surface-container-highest dark:bg-slate-800 text-slate-500"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-500"
                           }`}
                         >
-                          <span className="material-symbols-outlined text-sm">
-                            {isSelected ? "check" : "description"}
-                          </span>
+                          {isSelected ? (
+                            <Check size={14} strokeWidth={3} />
+                          ) : (
+                            <FileText size={14} />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-xs truncate text-slate-800 dark:text-slate-200">
                             {resume.filename || "Resume Document"}
                           </h4>
-                          <p className="text-[10px] text-on-surface-variant mt-1">
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
                             Skills:{" "}
-                            {(
-                              resume.parsed_resume?.skills ||
-                              resume.skills ||
-                              []
-                            )
+                            {(resume.parsed_resume?.skills || resume.skills || [])
                               .slice(0, 4)
                               .join(", ")}
                           </p>
@@ -284,25 +238,20 @@ const AnalysisPage = () => {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-headline text-2xl font-extrabold tracking-tight">
+                <h3 className="font-headline text-xl sm:text-2xl font-extrabold tracking-tight">
                   Select Target Position
                 </h3>
-                <p className="text-on-surface-variant text-xs mt-1">
-                  Choose the job description profile to evaluate compatibility
-                  against.
+                <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
+                  Choose the job description profile to evaluate compatibility against.
                 </p>
               </div>
 
               {jobs.length === 0 ? (
-                <div className="text-center py-16 bg-surface-container-low dark:bg-slate-900 rounded-2xl border border-slate-100/30 p-6 flex flex-col items-center gap-4">
-                  <span className="material-symbols-outlined text-4xl text-slate-400">
-                    work
-                  </span>
+                <div className="text-center py-12 sm:py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100/30 dark:border-slate-800 p-6 flex flex-col items-center gap-4 shadow-sm">
+                  <Briefcase size={40} className="text-slate-400" />
                   <div>
-                    <h5 className="font-bold text-sm">
-                      No job descriptions saved
-                    </h5>
-                    <p className="text-xs text-on-surface-variant mt-1">
+                    <h5 className="font-bold text-sm">No job descriptions saved</h5>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       Save a job description before evaluating matching scores.
                     </p>
                   </div>
@@ -314,7 +263,7 @@ const AnalysisPage = () => {
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {jobs.map((job) => {
                     const jId = job.id || job.jd_id;
                     const isSelected = selectedJobId === jId;
@@ -322,34 +271,32 @@ const AnalysisPage = () => {
                       <div
                         key={jId}
                         onClick={() => setSelectedJobId(jId)}
-                        className={`p-5 rounded-xl cursor-pointer transition-all border-2 flex items-start gap-4 hover:scale-[1.01] ${
+                        className={`p-4 sm:p-5 rounded-xl cursor-pointer transition-all border-2 flex items-start gap-4 hover:scale-[1.01] ${
                           isSelected
-                            ? "bg-white dark:bg-slate-850 border-primary shadow-sm"
-                            : "bg-surface-container-low dark:bg-slate-900 border-transparent hover:bg-white dark:hover:bg-slate-850"
+                            ? "bg-white dark:bg-slate-800 border-primary shadow-sm"
+                            : "bg-slate-50 dark:bg-slate-900 border-transparent hover:bg-white dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
                         }`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                             isSelected
                               ? "bg-primary text-white"
-                              : "bg-surface-container-highest dark:bg-slate-800 text-slate-500"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-500"
                           }`}
                         >
-                          <span className="material-symbols-outlined text-sm">
-                            {isSelected ? "check" : "work"}
-                          </span>
+                          {isSelected ? (
+                            <Check size={14} strokeWidth={3} />
+                          ) : (
+                            <Briefcase size={14} />
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-xs truncate text-slate-800 dark:text-slate-200">
                             {job.job_title || "Target Role"}
                           </h4>
-                          <p className="text-[10px] text-on-surface-variant mt-1">
-                            {job.company || "Acme Corp"} • Extracted Skills:{" "}
-                            {(
-                              job.parsed_job?.required_skills ||
-                              job.required_skills ||
-                              []
-                            )
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                            {job.company || "Acme Corp"} • Skills:{" "}
+                            {(job.parsed_job?.required_skills || job.required_skills || [])
                               .slice(0, 3)
                               .join(", ")}
                           </p>
@@ -366,18 +313,17 @@ const AnalysisPage = () => {
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-headline text-2xl font-extrabold tracking-tight">
+                <h3 className="font-headline text-xl sm:text-2xl font-extrabold tracking-tight">
                   Review Alignment Setup
                 </h3>
-                <p className="text-on-surface-variant text-xs mt-1">
-                  Confirm your parameters and prompt Gemini to execute vector
-                  similarity matchmaking.
+                <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">
+                  Confirm your parameters and prompt Gemini to execute vector similarity matchmaking.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Selected Resume Review */}
-                <div className="bg-surface-container-low dark:bg-slate-900 rounded-xl p-6 border border-slate-100/10">
+                <div className="bg-white dark:bg-slate-900 rounded-xl p-5 sm:p-6 border border-slate-100/10 dark:border-slate-800 shadow-sm">
                   <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
                     Selected Candidate
                   </span>
@@ -386,34 +332,26 @@ const AnalysisPage = () => {
                       selectedResume?.filename ||
                       "Resume Document"}
                   </h4>
-                  <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                     Skills:{" "}
-                    {(
-                      selectedResume?.parsed_resume?.skills ||
-                      selectedResume?.skills ||
-                      []
-                    )
+                    {(selectedResume?.parsed_resume?.skills || selectedResume?.skills || [])
                       .slice(0, 5)
                       .join(", ")}
                   </p>
                 </div>
 
                 {/* Selected Job Review */}
-                <div className="bg-surface-container-low dark:bg-slate-900 rounded-xl p-6 border border-slate-100/10">
+                <div className="bg-white dark:bg-slate-900 rounded-xl p-5 sm:p-6 border border-slate-100/10 dark:border-slate-800 shadow-sm">
                   <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                    Selected Job profile
+                    Selected Job Profile
                   </span>
                   <h4 className="font-headline font-bold text-lg mt-1 text-emerald-700 dark:text-emerald-400">
                     {selectedJob?.job_title || "Job Description"}
                   </h4>
-                  <p className="text-xs text-on-surface-variant mt-2 leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
                     Company: {selectedJob?.company || "Acme Inc."} <br />
                     Required Skills:{" "}
-                    {(
-                      selectedJob?.parsed_job?.required_skills ||
-                      selectedJob?.required_skills ||
-                      []
-                    )
+                    {(selectedJob?.parsed_job?.required_skills || selectedJob?.required_skills || [])
                       .slice(0, 5)
                       .join(", ")}
                   </p>
@@ -422,35 +360,32 @@ const AnalysisPage = () => {
             </div>
           )}
 
-          {/* Sticky Bottom Navigation Actions */}
-          <div className="mt-12 glass-panel rounded-2xl p-4 shadow-xl border border-white/20 flex items-center justify-between">
+          {/* Bottom Navigation Actions */}
+          <div className="mt-10 sm:mt-12 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl p-4 shadow-xl border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between gap-4">
             <button
               onClick={handlePrevStep}
               disabled={step === 1}
-              className="px-6 py-2.5 rounded-lg text-slate-700 dark:text-slate-350 font-bold hover:bg-slate-200/50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer text-xs"
+              className="flex items-center gap-1.5 px-4 sm:px-6 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer text-xs transition-colors"
             >
+              <ChevronLeft size={14} />
               Back
             </button>
 
             {step < 3 ? (
               <button
                 onClick={handleNextStep}
-                className="bg-primary-gradient px-8 py-2.5 rounded-lg text-white font-bold flex items-center gap-2 hover:opacity-95 active:scale-95 transition-all shadow-md cursor-pointer text-xs"
+                className="bg-primary-gradient px-6 sm:px-8 py-2.5 rounded-lg text-white font-bold flex items-center gap-2 hover:opacity-95 active:scale-95 transition-all shadow-md cursor-pointer text-xs"
               >
                 <span>Next Step</span>
-                <span className="material-symbols-outlined text-sm">
-                  arrow_forward
-                </span>
+                <ArrowRight size={14} />
               </button>
             ) : (
               <button
                 onClick={handleRunMatch}
-                className="bg-emerald-600 px-8 py-2.5 rounded-lg text-white font-bold flex items-center gap-2 hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-emerald-600/10 cursor-pointer text-xs"
+                className="bg-emerald-600 px-6 sm:px-8 py-2.5 rounded-lg text-white font-bold flex items-center gap-2 hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-emerald-600/10 cursor-pointer text-xs"
               >
                 <span>Run Match Analysis</span>
-                <span className="material-symbols-outlined text-sm">
-                  check_circle
-                </span>
+                <CheckCircle2 size={14} />
               </button>
             )}
           </div>

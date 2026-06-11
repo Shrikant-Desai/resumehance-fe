@@ -8,12 +8,15 @@ export const signupUser = createAsyncThunk(
   async ({ email, password }, { rejectWithValue }) => {
     try {
       // Backend envelope: { success: true, message: "...", data: { id, email, ... } }
-      const response = await apiClient.post("/auth/signup", { email, password });
+      const response = await apiClient.post("/auth/signup", {
+        email,
+        password,
+      });
       return response.data; // full envelope — success message used in UI
     } catch (error) {
       return rejectWithValue(error.message || "Signup failed.");
     }
-  }
+  },
 );
 
 export const loginUser = createAsyncThunk(
@@ -22,11 +25,10 @@ export const loginUser = createAsyncThunk(
     try {
       // Backend login returns: { access_token, token_type } directly (NOT wrapped in data envelope)
       const response = await apiClient.post("/auth/login", { email, password });
-      const { access_token } = response.data;
+      const { access_token } = response.data.data;
 
       // Save token in localStorage
       localStorage.setItem("resumehance_token", access_token);
-
       // Fetch user profile immediately after successful login
       const userDetails = await dispatch(fetchCurrentUser()).unwrap();
 
@@ -34,7 +36,7 @@ export const loginUser = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.message || "Login failed.");
     }
-  }
+  },
 );
 
 export const fetchCurrentUser = createAsyncThunk(
@@ -48,7 +50,7 @@ export const fetchCurrentUser = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(error.message || "Failed to load user profile.");
     }
-  }
+  },
 );
 
 // ─── Initial State ─────────────────────────────────────────────────────────
@@ -96,7 +98,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.signupSuccess = true;
         // Capture the backend success message (e.g. "User created successfully.")
-        state.signupMessage = action.payload?.message || "Account created successfully!";
+        state.signupMessage =
+          action.payload?.message || "Account created successfully!";
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.loading = false;

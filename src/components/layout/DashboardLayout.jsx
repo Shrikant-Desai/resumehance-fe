@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
 const DashboardLayout = () => {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Determine navbar title based on path
   const getTitle = () => {
@@ -24,15 +26,21 @@ const DashboardLayout = () => {
 
   return (
     <div className="min-h-screen flex bg-surface">
-      {/* Fixed Left Sidebar */}
-      <Sidebar />
+      {/* Sidebar — fixed on desktop, slide-in on mobile */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-      {/* Main Right Area */}
-      <div className="ml-64 flex-1 flex flex-col min-h-screen relative">
-        <Navbar title={getTitle()} />
+      {/* Main Right Area — full width on mobile, offset on desktop */}
+      <div className="flex-1 flex flex-col min-h-screen relative lg:ml-64 w-full min-w-0">
+        <Navbar
+          title={getTitle()}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         {/* Dynamic Page Content */}
-        <main className="flex-grow p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           <Outlet />
         </main>
       </div>

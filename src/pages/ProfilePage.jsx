@@ -3,16 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { logout } from "../store/authSlice";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { LogOut, User, Briefcase, Mail, Save } from "lucide-react";
 
 const ProfilePage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
 
-  const {
-    register,
-    handleSubmit,
-  } = useForm({
+  const { register, handleSubmit } = useForm({
     defaultValues: {
       email: user?.email || "",
       fullName: user?.email ? user.email.split("@")[0] : "John Doe",
@@ -31,26 +29,30 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="space-y-8 text-left select-none max-w-3xl">
+    <div className="space-y-6 sm:space-y-8 text-left select-none max-w-3xl">
       <div>
-        <h2 className="font-headline text-3xl font-extrabold tracking-tight">Profile Settings</h2>
-        <p className="text-on-surface-variant text-sm mt-1">
+        <h2 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight">
+          Profile Settings
+        </h2>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
           Manage your personal details and credential preferences.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 gap-6 sm:gap-8">
         {/* User details card */}
-        <div className="bg-surface-container-low dark:bg-slate-900 rounded-2xl p-6 border border-slate-100/10 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-center gap-6">
-            <div className="w-16 h-16 rounded-xl bg-primary-gradient flex items-center justify-center text-white font-bold text-xl shadow-md">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-100/10 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary-gradient flex items-center justify-center text-white font-bold text-xl shadow-md shrink-0">
               {user?.email ? user.email.slice(0, 2).toUpperCase() : "US"}
             </div>
             <div>
-              <h3 className="font-headline text-xl font-bold text-slate-800 dark:text-slate-200">
+              <h3 className="font-headline text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-200">
                 {user?.email ? user.email.split("@")[0] : "Active User"}
               </h3>
-              <p className="text-on-surface-variant text-xs mt-1 font-semibold">{user?.email}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs mt-1 font-semibold">
+                {user?.email}
+              </p>
               <span className="inline-block mt-2 px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-primary dark:text-indigo-400 text-[9px] font-bold rounded-full uppercase tracking-wider">
                 PRO Member
               </span>
@@ -59,60 +61,64 @@ const ProfilePage = () => {
 
           <button
             onClick={handleLogout}
-            className="bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 px-6 py-2.5 rounded-xl font-bold text-xs shadow-sm hover:bg-rose-100 transition-colors flex items-center gap-2 cursor-pointer border-none"
+            className="bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 px-5 sm:px-6 py-2.5 rounded-xl font-bold text-xs shadow-sm hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors flex items-center gap-2 cursor-pointer border border-rose-100 dark:border-rose-900/30 self-start sm:self-auto"
           >
-            <span className="material-symbols-outlined text-sm">logout</span>
+            <LogOut size={14} />
             Log Out
           </button>
         </div>
 
         {/* Profile edit form */}
-        <div className="bg-surface-container-low dark:bg-slate-900 rounded-2xl p-6 border border-slate-100/10 shadow-sm">
-          <h4 className="font-headline font-bold text-sm mb-6 uppercase tracking-widest text-slate-400">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-100/10 dark:border-slate-800 shadow-sm">
+          <h4 className="font-headline font-bold text-sm mb-5 sm:mb-6 uppercase tracking-widest text-slate-400">
             Edit Details
           </h4>
-          
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 sm:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                  <User size={10} />
                   Full Name
                 </label>
                 <input
                   type="text"
                   {...register("fullName", { required: "Name is required" })}
-                  className="w-full px-4 py-2.5 bg-surface-container-lowest dark:bg-slate-800 border-none rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                  <Briefcase size={10} />
                   Professional Title
                 </label>
                 <input
                   type="text"
                   {...register("title")}
-                  className="w-full px-4 py-2.5 bg-surface-container-lowest dark:bg-slate-800 border-none rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                <Mail size={10} />
                 Registered Email
               </label>
               <input
                 type="email"
                 disabled
                 value={user?.email || ""}
-                className="w-full px-4 py-2.5 bg-surface-container-highest dark:bg-slate-800 text-slate-500 border-none rounded-xl text-xs outline-none cursor-not-allowed"
+                className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none cursor-not-allowed"
               />
             </div>
 
             <button
               type="submit"
-              className="bg-primary-gradient text-white px-8 py-3 rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:scale-[0.98] transition-transform cursor-pointer"
+              className="bg-primary-gradient text-white px-6 sm:px-8 py-3 rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:scale-[0.98] transition-transform cursor-pointer flex items-center gap-2"
             >
+              <Save size={14} />
               Save Changes
             </button>
           </form>

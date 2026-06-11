@@ -1,8 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchJobDescriptions, createJobDescription } from "../api/job";
 import { toast } from "sonner";
+import {
+  Search,
+  Brain,
+  Tag,
+  ClipboardList,
+  Briefcase,
+  ClipboardCheck,
+  ChevronRight,
+} from "lucide-react";
 
 const JobsPage = () => {
   const navigate = useNavigate();
@@ -18,39 +27,34 @@ const JobsPage = () => {
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["jobs"],
     queryFn: fetchJobDescriptions,
-    onSuccess: (data) => {
-      if (data.length > 0 && !selectedJobId) {
-        setSelectedJobId(data[0].id || data[0].jd_id);
-      }
-    }
   });
+
+  // Auto-select first job when data loads
+  useEffect(() => {
+    if (jobs.length > 0 && !selectedJobId) {
+      setSelectedJobId(jobs[0].id || jobs[0].jd_id);
+    }
+  }, [jobs, selectedJobId]);
 
   // Mutation: Create JD
   const createMutation = useMutation({
     mutationFn: createJobDescription,
     onSuccess: (data) => {
-      // data is the unwrapped job description object from the backend envelope
       toast.success("Job description parsed successfully!");
-      queryClient.invalidateQueries(["jobs"]);
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
       setSelectedJobId(data.id || data.jd_id);
       setJobTitle("");
       setCompany("");
       setJdText("");
     },
     onError: (err) => {
-      // err is the normalized error: { message, code, details, status }
       toast.error(err.message || "Failed to parse job description. Please try again.");
-    }
+    },
   });
 
   // Selected JD derivation
-  const selectedJob = jobs.find(
-    (j) => j.id === selectedJobId || j.jd_id === selectedJobId
-  ) || jobs[0];
-
-  if (jobs.length > 0 && !selectedJobId) {
-    setSelectedJobId(jobs[0].id || jobs[0].jd_id);
-  }
+  const selectedJob =
+    jobs.find((j) => j.id === selectedJobId || j.jd_id === selectedJobId) || jobs[0];
 
   // Filter JDs by search term
   const filteredJobs = jobs.filter((job) => {
@@ -80,12 +84,12 @@ const JobsPage = () => {
     return (
       <div className="space-y-8 animate-pulse text-left">
         <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-lg w-1/4"></div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           <div className="lg:col-span-5 space-y-6">
             <div className="h-40 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
             <div className="h-80 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
           </div>
-          <div className="lg:col-span-7 h-[550px] bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+          <div className="lg:col-span-7 h-[400px] bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
         </div>
       </div>
     );
@@ -93,44 +97,51 @@ const JobsPage = () => {
 
   // Fallbacks for Parsed Job schema
   const parsedJob = selectedJob?.parsed_job || selectedJob || {};
-  const requiredSkills = parsedJob.required_skills || parsedJob.skills || ["React", "Node.js", "System Design"];
-  const responsibilities = parsedJob.key_responsibilities || parsedJob.responsibilities || [];
-  const keywordTags = parsedJob.keyword_tags || parsedJob.extractions || ["#ProductStrategy", "#SystemsThinking"];
+  const requiredSkills =
+    parsedJob.required_skills || parsedJob.skills || ["React", "Node.js", "System Design"];
+  const responsibilities =
+    parsedJob.key_responsibilities || parsedJob.responsibilities || [];
+  const keywordTags =
+    parsedJob.keyword_tags || parsedJob.extractions || ["#ProductStrategy", "#SystemsThinking"];
 
   return (
-    <div className="space-y-10 text-left select-none">
-      {/* Search and Layout Header */}
-      <section className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-8 sm:space-y-10 text-left select-none">
+      {/* Header */}
+      <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-headline text-3xl font-extrabold tracking-tight">Job Descriptions</h2>
-          <p className="text-on-surface-variant text-sm mt-1">
+          <h2 className="font-headline text-2xl sm:text-3xl font-extrabold tracking-tight">
+            Job Descriptions
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
             Store and extract insights from your targeted job requirements.
           </p>
         </div>
 
-        <div className="relative">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-            search
-          </span>
+        <div className="relative w-full sm:w-auto">
+          <Search
+            size={14}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+          />
           <input
-            className="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 text-xs w-64 focus:ring-2 focus:ring-primary/20 dark:bg-slate-800 outline-none transition-all dark:text-slate-200"
+            className="w-full sm:w-64 bg-slate-100 dark:bg-slate-800 border-none rounded-full pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-primary/20 dark:text-slate-200 outline-none transition-all"
             placeholder="Search saved job profiles..."
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search job descriptions"
           />
         </div>
       </section>
 
-      {/* Main Split Layout: Submit Form & Details Panel */}
-      <section className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      {/* Main Split Layout */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Left Side: Intake Form & List */}
-        <div className="lg:col-span-5 space-y-8">
+        <div className="lg:col-span-5 space-y-6 sm:space-y-8">
           {/* Create Form Container */}
-          <div className="bg-surface-container-low dark:bg-slate-900 rounded-2xl p-6 border border-slate-100/30 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-100/30 dark:border-slate-800 shadow-sm">
             <h4 className="font-headline text-lg font-bold mb-4">Add Job Details</h4>
             <form onSubmit={handleParse} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
                     Job Title
@@ -140,7 +151,7 @@ const JobsPage = () => {
                     placeholder="e.g. Lead Designer"
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-surface-container-lowest dark:bg-slate-800 border-none rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200 transition-all"
                   />
                 </div>
                 <div>
@@ -152,7 +163,7 @@ const JobsPage = () => {
                     placeholder="e.g. Acme Corp"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-surface-container-lowest dark:bg-slate-800 border-none rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200 transition-all"
                   />
                 </div>
               </div>
@@ -165,8 +176,8 @@ const JobsPage = () => {
                   placeholder="Paste details of responsibilities and core skills needed..."
                   value={jdText}
                   onChange={(e) => setJdText(e.target.value)}
-                  className="w-full min-h-[160px] max-h-[220px] px-4 py-3 bg-surface-container-lowest dark:bg-slate-800 border-none rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 resize-none dark:text-slate-200"
-                ></textarea>
+                  className="w-full min-h-[140px] sm:min-h-[160px] max-h-[220px] px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 resize-none dark:text-slate-200 transition-all"
+                />
               </div>
 
               <button
@@ -175,10 +186,10 @@ const JobsPage = () => {
                 className="w-full bg-primary-gradient text-white py-3.5 rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:scale-[1.01] transition-transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {createMutation.isPending ? (
-                  <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+                  <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-sm">psychology</span>
+                    <Brain size={14} />
                     Parse with AI
                   </>
                 )}
@@ -188,12 +199,16 @@ const JobsPage = () => {
 
           {/* Job Library Directory */}
           <div className="space-y-4">
-            <h4 className="font-headline font-bold text-sm mb-2">Job Library ({filteredJobs.length})</h4>
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 no-scrollbar">
+            <h4 className="font-headline font-bold text-sm mb-2">
+              Job Library ({filteredJobs.length})
+            </h4>
+            <div className="space-y-3 max-h-[280px] sm:max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
               {filteredJobs.length === 0 ? (
-                <div className="text-center py-8 bg-surface-container-low dark:bg-slate-900 rounded-2xl">
-                  <span className="material-symbols-outlined text-2xl text-slate-400">work</span>
-                  <p className="text-xs text-on-surface-variant mt-2">No matching job profiles found.</p>
+                <div className="text-center py-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100/30 dark:border-slate-800">
+                  <Briefcase size={24} className="mx-auto text-slate-400 mb-2" />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    No matching job profiles found.
+                  </p>
                 </div>
               ) : (
                 filteredJobs.map((job) => {
@@ -203,21 +218,24 @@ const JobsPage = () => {
                     <div
                       key={jId}
                       onClick={() => setSelectedJobId(jId)}
-                      className={`p-4 rounded-xl transition-all cursor-pointer flex justify-between items-center ${
+                      className={`p-4 rounded-xl transition-all cursor-pointer flex justify-between items-center gap-2 ${
                         isSelected
-                          ? "bg-white dark:bg-slate-850 shadow-sm border-l-4 border-primary"
-                          : "bg-surface-container-low dark:bg-slate-900 hover:bg-white dark:hover:bg-slate-850"
+                          ? "bg-white dark:bg-slate-800 shadow-sm border-l-4 border-primary border border-slate-100/10"
+                          : "bg-slate-50 dark:bg-slate-900 hover:bg-white dark:hover:bg-slate-800 border border-transparent"
                       }`}
                     >
-                      <div>
-                        <h6 className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                      <div className="min-w-0">
+                        <h6 className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate">
                           {job.job_title || "Lead Developer"}
                         </h6>
-                        <p className="text-[10px] text-on-surface-variant mt-1">
-                          {job.company || "Acme Inc."} • Created {job.created_at ? new Date(job.created_at).toLocaleDateString() : "Just now"}
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                          {job.company || "Acme Inc."} •{" "}
+                          {job.created_at
+                            ? new Date(job.created_at).toLocaleDateString()
+                            : "Just now"}
                         </p>
                       </div>
-                      <span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+                      <ChevronRight size={16} className="text-slate-400 shrink-0" />
                     </div>
                   );
                 })
@@ -227,49 +245,49 @@ const JobsPage = () => {
         </div>
 
         {/* Right Side: Extraction Details Canvas */}
-        <div className="lg:col-span-7 bg-surface-container-lowest dark:bg-slate-900 rounded-2xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 min-h-[500px] flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-100 dark:border-slate-800 min-h-[400px] sm:min-h-[500px] flex flex-col justify-between">
           {!selectedJob ? (
-            <div className="flex-grow flex flex-col items-center justify-center text-center py-20 gap-4">
-              <span className="material-symbols-outlined text-5xl text-slate-350">assignment_turned_in</span>
+            <div className="flex-grow flex flex-col items-center justify-center text-center py-16 gap-4">
+              <ClipboardCheck size={48} className="text-slate-300 dark:text-slate-600" />
               <div>
-                <h4 className="font-headline text-md font-bold text-slate-600 dark:text-slate-400">
+                <h4 className="font-headline text-base font-bold text-slate-600 dark:text-slate-400">
                   Select a job description to inspect details
                 </h4>
-                <p className="text-xs text-on-surface-variant mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Paste raw requirements on the left to extract parsed parameters using Google Gemini AI.
                 </p>
               </div>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Header section */}
-              <div className="flex justify-between items-start pb-6 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-5 sm:pb-6 border-b border-slate-100 dark:border-slate-800">
                 <div>
                   <span className="text-[9px] font-bold uppercase tracking-widest text-primary bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded">
                     Curated Profile
                   </span>
-                  <h3 className="font-headline text-2xl font-extrabold tracking-tight mt-1 text-slate-800 dark:text-slate-200">
+                  <h3 className="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1 text-slate-800 dark:text-slate-200">
                     {selectedJob.job_title || "Lead Developer"}
                   </h3>
-                  <p className="text-on-surface-variant text-xs font-semibold mt-1">
+                  <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">
                     {selectedJob.company || "Acme Corporation"}
                   </p>
                 </div>
-                
+
                 <button
                   onClick={() => navigate("/analysis", { state: { selectedJobId } })}
-                  className="bg-primary-gradient text-white px-5 py-2.5 rounded-lg font-bold text-xs shadow-lg shadow-primary/20 hover:scale-[0.98] transition-transform cursor-pointer"
+                  className="bg-primary-gradient text-white px-5 py-2.5 rounded-lg font-bold text-xs shadow-lg shadow-primary/20 hover:scale-[0.98] transition-transform cursor-pointer shrink-0"
                 >
                   Match to Resume
                 </button>
               </div>
 
               {/* Grid sections */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 text-left">
                 {/* Core required skills */}
-                <div className="bg-surface-container-low dark:bg-slate-850 p-6 rounded-xl space-y-4">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl space-y-4">
                   <div className="flex items-center gap-2 text-primary font-semibold">
-                    <span className="material-symbols-outlined text-sm">psychology</span>
+                    <Brain size={14} />
                     <h5 className="text-xs uppercase tracking-widest font-bold text-slate-400">
                       Required Skills
                     </h5>
@@ -278,7 +296,7 @@ const JobsPage = () => {
                     {requiredSkills.map((skill, index) => (
                       <span
                         key={index}
-                        className="px-2.5 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-350 text-xs font-semibold rounded-lg ring-1 ring-slate-100/50 dark:ring-slate-800"
+                        className="px-2.5 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700"
                       >
                         {skill}
                       </span>
@@ -287,18 +305,18 @@ const JobsPage = () => {
                 </div>
 
                 {/* Key Extraction Tags */}
-                <div className="bg-surface-container-low dark:bg-slate-850 p-6 rounded-xl space-y-4">
-                  <div className="flex items-center gap-2 text-tertiary font-semibold">
-                    <span className="material-symbols-outlined text-sm">key</span>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl space-y-4">
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold">
+                    <Tag size={14} />
                     <h5 className="text-xs uppercase tracking-widest font-bold text-slate-400">
-                      Extractions Keywords
+                      Keyword Extractions
                     </h5>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {keywordTags.map((tag, index) => (
                       <span
                         key={index}
-                        className="px-2.5 py-1 bg-tertiary-fixed text-on-tertiary-fixed text-xs font-bold rounded-lg"
+                        className="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg"
                       >
                         {tag.startsWith("#") ? tag : `#${tag}`}
                       </span>
@@ -307,23 +325,25 @@ const JobsPage = () => {
                 </div>
 
                 {/* Responsibilities list */}
-                <div className="md:col-span-2 bg-surface-container-low dark:bg-slate-850 p-6 rounded-xl space-y-4">
+                <div className="md:col-span-2 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-xl space-y-4">
                   <div className="flex items-center gap-2 text-secondary font-semibold">
-                    <span className="material-symbols-outlined text-sm">assignment</span>
+                    <ClipboardList size={14} />
                     <h5 className="text-xs uppercase tracking-widest font-bold text-slate-400">
                       Key Responsibilities
                     </h5>
                   </div>
                   {responsibilities.length === 0 ? (
-                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                       {selectedJob.jd_text || "No specific responsibility details parsed."}
                     </p>
                   ) : (
                     <ul className="space-y-3">
                       {responsibilities.map((resp, index) => (
                         <li key={index} className="flex gap-3 items-start">
-                          <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-secondary shrink-0"></div>
-                          <p className="text-xs text-on-surface-variant leading-relaxed">{resp}</p>
+                          <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-secondary shrink-0" />
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            {resp}
+                          </p>
                         </li>
                       ))}
                     </ul>
