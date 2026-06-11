@@ -27,10 +27,6 @@ const SettingsPage = () => {
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [weeklyDigest, setWeeklyDigest] = useState(false);
 
-  const handleSaveSecurity = (e) => {
-    e.preventDefault();
-    toast.success("Security credentials updated! (Mocked)");
-  };
 
   const handleToggleTheme = (mode) => {
     setThemeMode(mode);
@@ -107,34 +103,18 @@ const SettingsPage = () => {
               Security &amp; Authentication
             </h4>
           </div>
-          <form onSubmit={handleSaveSecurity} className="space-y-4 max-w-md">
+          <div className="bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/30 rounded-xl p-4 flex items-start gap-3">
+            <Shield size={16} className="text-primary shrink-0 mt-0.5" />
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-                Current Password
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200 transition-all"
-              />
+              <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Password management coming soon
+              </p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                Password change and account security features are not yet available in this version.
+                They will be added in a future update.
+              </p>
             </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-                New Password
-              </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-primary/20 dark:text-slate-200 transition-all"
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-primary-gradient text-white px-6 py-3 rounded-xl font-bold text-xs shadow-lg shadow-primary/20 hover:scale-[0.98] transition-transform cursor-pointer"
-            >
-              Update Password
-            </button>
-          </form>
+          </div>
         </div>
 
         {/* Alert configs */}

@@ -42,12 +42,15 @@ const DashboardPage = () => {
   const jobCount = jobs.length;
   const analysisCount = analyses.length;
 
+  // readiness_score may be a nested object { score } or a plain number depending on the list endpoint
+  const getScore = (run) => {
+    const s = run.readiness_score;
+    return typeof s === "object" && s !== null ? (s.score ?? 0) : (s ?? 0);
+  };
+
   const averageScore =
     analysisCount > 0
-      ? Math.round(
-          analyses.reduce((acc, curr) => acc + (curr.readiness_score || 0), 0) /
-            analysisCount,
-        )
+      ? Math.round(analyses.reduce((acc, curr) => acc + getScore(curr), 0) / analysisCount)
       : 0;
 
   if (isLoading) {
@@ -178,45 +181,51 @@ const DashboardPage = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {analyses?.slice(0, 5)?.map((run) => (
-                  <div
-                    key={run.id}
-                    onClick={() => navigate(`/analysis/${run.id}`)}
-                    className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer transition-all border border-slate-100/10"
-                  >
-                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center shrink-0">
-                        <BarChart3 size={16} />
+                {analyses?.slice(0, 5)?.map((run) => {
+                  const runId = run.analysis_id || run.id;
+                  const rsScore = Math.round(getScore(run));
+                  return (
+                    <div
+                      key={runId}
+                      onClick={() => navigate(`/analysis/${runId}`)}
+                      className="flex items-center justify-between p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl cursor-pointer transition-all border border-slate-100/10"
+                    >
+                      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 flex items-center justify-center shrink-0">
+                          <BarChart3 size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <h6 className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate">
+                            {run.job_title || `JD #${run.jd_id} / Resume #${run.resume_id}`}
+                          </h6>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            Resume #{run.resume_id} • JD #{run.jd_id} •{" "}
+                            {run.created_at
+                              ? new Date(run.created_at).toLocaleDateString()
+                              : "Just now"}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h6 className="font-bold text-sm text-slate-800 dark:text-slate-200 truncate">
-                          {run.job_title || `JD #${run.jd_id}`}
-                        </h6>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                          Resume ID: {run.resume_id} •{" "}
-                          {run.created_at
-                            ? new Date(run.created_at).toLocaleDateString()
-                            : "Just now"}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-2">
-                      <span
-                        className={`text-sm font-extrabold px-2.5 sm:px-3 py-1 rounded-full ${
-                          run.readiness_score >= 75
-                            ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400"
-                            : run.readiness_score >= 55
-                              ? "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400"
-                              : "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400"
-                        }`}
-                      >
-                        {run.readiness_score}%
-                      </span>
-                      <ChevronRight size={16} className="text-slate-400" />
+                      <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-2">
+                        {rsScore > 0 && (
+                          <span
+                            className={`text-sm font-extrabold px-2.5 sm:px-3 py-1 rounded-full ${
+                              rsScore >= 75
+                                ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400"
+                                : rsScore >= 55
+                                  ? "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400"
+                                  : "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400"
+                            }`}
+                          >
+                            {rsScore}%
+                          </span>
+                        )}
+                        <ChevronRight size={16} className="text-slate-400" />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

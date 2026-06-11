@@ -29,7 +29,7 @@ const ResumesPage = () => {
   // Auto-select first resume when data loads
   useEffect(() => {
     if (resumes.length > 0 && !selectedResumeId) {
-      setSelectedResumeId(resumes[0].id || resumes[0].resume_id);
+      setSelectedResumeId(resumes[0].resume_id || resumes[0].id);
     }
   }, [resumes, selectedResumeId]);
 
@@ -39,7 +39,7 @@ const ResumesPage = () => {
     onSuccess: (data) => {
       toast.success("Resume parsed and uploaded successfully!");
       queryClient.invalidateQueries({ queryKey: ["resumes"] });
-      setSelectedResumeId(data.id || data.resume_id);
+      setSelectedResumeId(data.resume_id || data.id);
     },
     onError: (err) => {
       toast.error(err.message || "Failed to parse resume PDF. Please try again.");
@@ -48,7 +48,7 @@ const ResumesPage = () => {
 
   // Safe selected resume calculation
   const selectedResume =
-    resumes.find((r) => r.id === selectedResumeId || r.resume_id === selectedResumeId) ||
+    resumes.find((r) => r.resume_id === selectedResumeId || r.id === selectedResumeId) ||
     resumes[0];
 
   // Uploader Handlers
@@ -87,11 +87,11 @@ const ResumesPage = () => {
     setTimeout(() => {
       toast.success("Resume deleted successfully!");
       const remaining = resumes.filter(
-        (r) => r.id !== selectedResumeId && r.resume_id !== selectedResumeId,
+        (r) => r.resume_id !== selectedResumeId && r.id !== selectedResumeId,
       );
       queryClient.setQueryData(["resumes"], remaining);
       if (remaining.length > 0) {
-        setSelectedResumeId(remaining[0].id || remaining[0].resume_id);
+        setSelectedResumeId(remaining[0].resume_id || remaining[0].id);
       } else {
         setSelectedResumeId(null);
       }
@@ -114,14 +114,30 @@ const ResumesPage = () => {
     );
   }
 
-  // Extra fallback properties for parsed resume data
-  const parsedData = selectedResume?.parsed_resume || selectedResume || {};
-  const skills = parsedData.skills || ["Communication", "Problem Solving", "Management"];
+  // Map API fields — list endpoint: { resume_id, file_name, candidate_name, resume_domain, seniority_level, total_experience_years, uploaded_at }
+  // Upload endpoint returns: { resume_id, file_name, parsed_data: { personal_info, skills, education, experience, ... } }
+  const parsedData = selectedResume?.parsed_data || {};
+  const personalInfo = parsedData.personal_info || {};
+  const skillsObj = parsedData.skills || {};
+  // Flatten all skill categories into a single array for display
+  const allSkills = [
+    ...(skillsObj.technical_skills || []),
+    ...(skillsObj.frameworks || []),
+    ...(skillsObj.programming_languages || []),
+    ...(skillsObj.tools_and_technologies || []),
+    ...(skillsObj.databases || []),
+    ...(skillsObj.domain_skills || []),
+    ...(skillsObj.methodologies || []),
+    ...(skillsObj.soft_skills || []),
+    ...(skillsObj.tools || []),
+    ...(skillsObj.certifications || []),
+  ];
   const education = parsedData.education || [];
   const experience = parsedData.experience || [];
   const projects = parsedData.projects || [];
-  const candidateName = parsedData.name || selectedResume?.filename || "Alex Rivera";
-  const experienceYears = parsedData.total_experience_years || 8;
+  // Display name: prefer parsed personal_info.name, else candidate_name from list, else fallback
+  const candidateName = personalInfo.name || selectedResume?.candidate_name || "Candidate";
+  const experienceYears = parsedData.total_experience_years ?? selectedResume?.total_experience_years ?? 0;
 
   return (
     <div className="space-y-6 sm:space-y-8 text-left select-none">
@@ -204,7 +220,7 @@ const ResumesPage = () => {
               </div>
             ) : (
               resumes.map((resume) => {
-                const rId = resume.id || resume.resume_id;
+                const rId = resume.resume_id || resume.id;
                 const isSelected = selectedResumeId === rId;
                 return (
                   <div
@@ -218,18 +234,20 @@ const ResumesPage = () => {
                   >
                     <div className="flex justify-between items-start gap-2">
                       <h4 className="font-bold text-xs truncate text-slate-800 dark:text-slate-200 flex-1">
-                        {resume.filename || "Resume PDF"}
+                        {resume.file_name || resume.filename || "Resume PDF"}
                       </h4>
                       <span className="text-[9px] bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold shrink-0">
                         Parsed
                       </span>
                     </div>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-300 font-semibold truncate">
+                      {resume.candidate_name || "—"}
+                    </p>
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium flex justify-between gap-2 flex-wrap">
-                      <span>Id: {rId}</span>
+                      <span>{resume.resume_domain || resume.seniority_level || ""}</span>
                       <span>
-                        Uploaded{" "}
-                        {resume.created_at
-                          ? new Date(resume.created_at).toLocaleDateString()
+                        {resume.uploaded_at || resume.created_at
+                          ? new Date(resume.uploaded_at || resume.created_at).toLocaleDateString()
                           : "Just now"}
                       </span>
                     </div>
@@ -269,13 +287,20 @@ const ResumesPage = () => {
                     <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">
                       {experienceYears > 0
                         ? `${experienceYears}+ Years Experience`
-                        : "Experienced Professional"}
+                        : "Fresher / Less than 1 year"}
                     </p>
                     <div className="flex gap-2 mt-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-primary dark:text-indigo-400 text-[9px] font-bold rounded-full uppercase tracking-wider">
-                        Top Talent
-                      </span>
-                      <span className="px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-secondary text-[9px] font-bold rounded-full uppercase tracking-wider">
+                      {selectedResume?.seniority_level && (
+                        <span className="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-primary dark:text-indigo-400 text-[9px] font-bold rounded-full uppercase tracking-wider">
+                          {selectedResume.seniority_level}
+                        </span>
+                      )}
+                      {selectedResume?.resume_domain && (
+                        <span className="px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-secondary text-[9px] font-bold rounded-full uppercase tracking-wider">
+                          {selectedResume.resume_domain}
+                        </span>
+                      )}
+                      <span className="px-2.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 text-[9px] font-bold rounded-full uppercase tracking-wider">
                         Parsed AI
                       </span>
                     </div>
@@ -310,16 +335,20 @@ const ResumesPage = () => {
                     <h4 className="font-headline text-xs font-bold uppercase tracking-widest text-slate-400">
                       Extracted Skills
                     </h4>
-                    <div className="flex flex-wrap gap-1.5">
-                      {skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-3 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-700"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
+                    {allSkills.length === 0 ? (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">No skills data available for this resume. Full details shown after upload.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {allSkills.map((skill, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full text-xs font-medium border border-slate-200 dark:border-slate-700"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Education Container */}
@@ -328,7 +357,7 @@ const ResumesPage = () => {
                       Education
                     </h4>
                     {education.length === 0 ? (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">No education details extracted.</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">No education details available. Full details shown after upload.</p>
                     ) : (
                       <div className="space-y-4">
                         {education.map((edu, index) => (
@@ -339,7 +368,7 @@ const ResumesPage = () => {
                             <p className="font-bold text-xs text-slate-800 dark:text-slate-200">
                               {edu.degree || "Degree"}
                             </p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{edu.school || "University"}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{edu.field ? `${edu.field} — ` : ""}{edu.institution || edu.school || "University"}</p>
                             {edu.year && <p className="text-[10px] text-slate-400 mt-1">{edu.year}</p>}
                           </div>
                         ))}
@@ -356,7 +385,7 @@ const ResumesPage = () => {
                       Work Experience
                     </h4>
                     {experience.length === 0 ? (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">No work experience details extracted.</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">No work experience available. Full details shown after upload.</p>
                     ) : (
                       <div className="space-y-4">
                         {experience.map((exp, index) => (
@@ -368,7 +397,23 @@ const ResumesPage = () => {
                               {exp.role || exp.title || "Role Title"}
                             </p>
                             <p className="text-xs text-primary font-semibold">{exp.company || "Company"}</p>
-                            {exp.description && (
+                            {(exp.start_date || exp.end_date) && (
+                              <p className="text-[10px] text-slate-400">
+                                {exp.start_date} — {exp.end_date || "Present"}
+                                {exp.duration_months ? ` (${exp.duration_months}mo)` : ""}
+                              </p>
+                            )}
+                            {exp.responsibilities && exp.responsibilities.length > 0 && (
+                              <ul className="mt-1 space-y-0.5">
+                                {exp.responsibilities.slice(0, 3).map((r, ri) => (
+                                  <li key={ri} className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed flex gap-1.5">
+                                    <span className="mt-1.5 w-1 h-1 rounded-full bg-indigo-300 shrink-0" />
+                                    {r}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                            {exp.description && !exp.responsibilities && (
                               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">
                                 {exp.description}
                               </p>

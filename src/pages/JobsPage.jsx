@@ -32,7 +32,7 @@ const JobsPage = () => {
   // Auto-select first job when data loads
   useEffect(() => {
     if (jobs.length > 0 && !selectedJobId) {
-      setSelectedJobId(jobs[0].id || jobs[0].jd_id);
+      setSelectedJobId(jobs[0].jd_id || jobs[0].id);
     }
   }, [jobs, selectedJobId]);
 
@@ -42,7 +42,7 @@ const JobsPage = () => {
     onSuccess: (data) => {
       toast.success("Job description parsed successfully!");
       queryClient.invalidateQueries({ queryKey: ["jobs"] });
-      setSelectedJobId(data.id || data.jd_id);
+      setSelectedJobId(data.jd_id || data.id);
       setJobTitle("");
       setCompany("");
       setJdText("");
@@ -54,7 +54,7 @@ const JobsPage = () => {
 
   // Selected JD derivation
   const selectedJob =
-    jobs.find((j) => j.id === selectedJobId || j.jd_id === selectedJobId) || jobs[0];
+    jobs.find((j) => j.jd_id === selectedJobId || j.id === selectedJobId) || jobs[0];
 
   // Filter JDs by search term
   const filteredJobs = jobs.filter((job) => {
@@ -96,13 +96,23 @@ const JobsPage = () => {
   }
 
   // Fallbacks for Parsed Job schema
-  const parsedJob = selectedJob?.parsed_job || selectedJob || {};
-  const requiredSkills =
-    parsedJob.required_skills || parsedJob.skills || ["React", "Node.js", "System Design"];
-  const responsibilities =
-    parsedJob.key_responsibilities || parsedJob.responsibilities || [];
-  const keywordTags =
-    parsedJob.keyword_tags || parsedJob.extractions || ["#ProductStrategy", "#SystemsThinking"];
+  // List endpoint: { jd_id, job_title, company, domain, seniority_level, minimum_years_required, created_at }
+  // Create response: { jd_id, parsed_data: { job_title, company, domain, required_skills, good_to_have_skills, key_responsibilities, ... } }
+  const parsedJob = selectedJob?.parsed_data || {};
+  // required_skills may be an object with sub-categories or fallback to flat array
+  const requiredSkillsObj = parsedJob.required_skills || {};
+  const requiredSkillsFlat = typeof requiredSkillsObj === "object" && !Array.isArray(requiredSkillsObj)
+    ? [
+        ...(requiredSkillsObj.technical_skills || []),
+        ...(requiredSkillsObj.frameworks || []),
+        ...(requiredSkillsObj.programming_languages || []),
+        ...(requiredSkillsObj.tools_and_technologies || []),
+      ]
+    : (Array.isArray(requiredSkillsObj) ? requiredSkillsObj : []);
+  const responsibilities = parsedJob.key_responsibilities || [];
+  // Use skill_priority_map keys as keyword tags if available
+  const priorityMap = parsedJob.skill_priority_map || {};
+  const keywordTags = Object.keys(priorityMap);
 
   return (
     <div className="space-y-8 sm:space-y-10 text-left select-none">
@@ -212,7 +222,7 @@ const JobsPage = () => {
                 </div>
               ) : (
                 filteredJobs.map((job) => {
-                  const jId = job.id || job.jd_id;
+                  const jId = job.jd_id || job.id;
                   const isSelected = selectedJobId === jId;
                   return (
                     <div
@@ -229,7 +239,7 @@ const JobsPage = () => {
                           {job.job_title || "Lead Developer"}
                         </h6>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-                          {job.company || "Acme Inc."} •{" "}
+                          {job.company || job.domain || "—"} •{" "}
                           {job.created_at
                             ? new Date(job.created_at).toLocaleDateString()
                             : "Just now"}
@@ -267,11 +277,23 @@ const JobsPage = () => {
                     Curated Profile
                   </span>
                   <h3 className="font-headline text-xl sm:text-2xl font-extrabold tracking-tight mt-1 text-slate-800 dark:text-slate-200">
-                    {selectedJob.job_title || "Lead Developer"}
+                    {selectedJob.job_title || parsedJob.job_title || "Lead Developer"}
                   </h3>
                   <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold mt-1">
-                    {selectedJob.company || "Acme Corporation"}
+                    {selectedJob.company || parsedJob.company || "—"}{selectedJob.domain ? ` • ${selectedJob.domain}` : ""}
                   </p>
+                  {selectedJob.seniority_level && (
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-primary text-[9px] font-bold rounded-full uppercase tracking-wider">
+                        {selectedJob.seniority_level}
+                      </span>
+                      {selectedJob.minimum_years_required != null && (
+                        <span className="px-2 py-0.5 bg-amber-50 dark:bg-amber-950/30 text-amber-600 text-[9px] font-bold rounded-full uppercase tracking-wider">
+                          {selectedJob.minimum_years_required}+ yrs required
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -292,16 +314,22 @@ const JobsPage = () => {
                       Required Skills
                     </h5>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {requiredSkills.map((skill, index) => (
-                      <span
-                        key={index}
-                        className="px-2.5 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
+                  {requiredSkillsFlat.length === 0 ? (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Skills data available after AI parsing. Use the form on the left to create a new JD.
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {requiredSkillsFlat.map((skill, index) => (
+                        <span
+                          key={index}
+                          className="px-2.5 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Key Extraction Tags */}
@@ -309,19 +337,30 @@ const JobsPage = () => {
                   <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-semibold">
                     <Tag size={14} />
                     <h5 className="text-xs uppercase tracking-widest font-bold text-slate-400">
-                      Keyword Extractions
+                      Skill Priority Map
                     </h5>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {keywordTags.map((tag, index) => (
-                      <span
-                        key={index}
-                        className="px-2.5 py-1 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-xs font-bold rounded-lg"
-                      >
-                        {tag.startsWith("#") ? tag : `#${tag}`}
-                      </span>
-                    ))}
-                  </div>
+                  {keywordTags.length === 0 ? (
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Priority map available after AI parsing.
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {keywordTags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
+                            priorityMap[tag] === "critical"
+                              ? "bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400"
+                              : "bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400"
+                          }`}
+                        >
+                          {tag}{" "}
+                          <span className="opacity-60 font-normal text-[9px] uppercase">{priorityMap[tag]}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Responsibilities list */}
@@ -334,7 +373,7 @@ const JobsPage = () => {
                   </div>
                   {responsibilities.length === 0 ? (
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                      {selectedJob.jd_text || "No specific responsibility details parsed."}
+                      Responsibilities available after AI parsing. Use the form to create a new job description.
                     </p>
                   ) : (
                     <ul className="space-y-3">

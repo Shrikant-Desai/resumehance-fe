@@ -51,8 +51,8 @@ const AnalysisPage = () => {
     },
   });
 
-  const selectedResume = resumes.find((r) => (r.id || r.resume_id) === selectedResumeId);
-  const selectedJob = jobs.find((j) => (j.id || j.jd_id) === selectedJobId);
+  const selectedResume = resumes.find((r) => (r.resume_id || r.id) === selectedResumeId);
+  const selectedJob = jobs.find((j) => (j.jd_id || j.id) === selectedJobId);
 
   const handleNextStep = () => {
     if (step === 1) {
@@ -190,7 +190,7 @@ const AnalysisPage = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {resumes.map((resume) => {
-                    const rId = resume.id || resume.resume_id;
+                    const rId = resume.resume_id || resume.id;
                     const isSelected = selectedResumeId === rId;
                     return (
                       <div
@@ -217,13 +217,14 @@ const AnalysisPage = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-xs truncate text-slate-800 dark:text-slate-200">
-                            {resume.filename || "Resume Document"}
+                            {resume.candidate_name || resume.file_name || resume.filename || "Resume Document"}
                           </h4>
                           <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-                            Skills:{" "}
-                            {(resume.parsed_resume?.skills || resume.skills || [])
-                              .slice(0, 4)
-                              .join(", ")}
+                            {resume.file_name || resume.filename || "PDF"}{" "}
+                            {resume.seniority_level ? `• ${resume.seniority_level}` : ""}{" "}
+                            {resume.total_experience_years != null
+                              ? `• ${resume.total_experience_years}y exp`
+                              : ""}
                           </p>
                         </div>
                       </div>
@@ -265,7 +266,7 @@ const AnalysisPage = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {jobs.map((job) => {
-                    const jId = job.id || job.jd_id;
+                    const jId = job.jd_id || job.id;
                     const isSelected = selectedJobId === jId;
                     return (
                       <div
@@ -295,10 +296,9 @@ const AnalysisPage = () => {
                             {job.job_title || "Target Role"}
                           </h4>
                           <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-                            {job.company || "Acme Corp"} • Skills:{" "}
-                            {(job.parsed_job?.required_skills || job.required_skills || [])
-                              .slice(0, 3)
-                              .join(", ")}
+                            {job.company || job.domain || "—"}
+                            {job.seniority_level ? ` • ${job.seniority_level}` : ""}
+                            {job.minimum_years_required != null ? ` • ${job.minimum_years_required}y min` : ""}
                           </p>
                         </div>
                       </div>
@@ -328,15 +328,18 @@ const AnalysisPage = () => {
                     Selected Candidate
                   </span>
                   <h4 className="font-headline font-bold text-lg mt-1 text-indigo-700 dark:text-indigo-400">
-                    {selectedResume?.parsed_resume?.name ||
+                    {selectedResume?.candidate_name ||
+                      selectedResume?.file_name ||
                       selectedResume?.filename ||
                       "Resume Document"}
                   </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                    Skills:{" "}
-                    {(selectedResume?.parsed_resume?.skills || selectedResume?.skills || [])
-                      .slice(0, 5)
-                      .join(", ")}
+                    {selectedResume?.file_name || selectedResume?.filename || "PDF"}
+                    {selectedResume?.seniority_level ? ` • ${selectedResume.seniority_level}` : ""}
+                    {selectedResume?.total_experience_years != null
+                      ? ` • ${selectedResume.total_experience_years}y experience`
+                      : ""}
+                    {selectedResume?.resume_domain ? ` • ${selectedResume.resume_domain}` : ""}
                   </p>
                 </div>
 
@@ -349,11 +352,12 @@ const AnalysisPage = () => {
                     {selectedJob?.job_title || "Job Description"}
                   </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                    Company: {selectedJob?.company || "Acme Inc."} <br />
-                    Required Skills:{" "}
-                    {(selectedJob?.parsed_job?.required_skills || selectedJob?.required_skills || [])
-                      .slice(0, 5)
-                      .join(", ")}
+                    Company: {selectedJob?.company || "—"} <br />
+                    {selectedJob?.domain ? `Domain: ${selectedJob.domain}` : ""}
+                    {selectedJob?.seniority_level ? ` • ${selectedJob.seniority_level}` : ""}
+                    {selectedJob?.minimum_years_required != null
+                      ? ` • ${selectedJob.minimum_years_required}+ yrs required`
+                      : ""}
                   </p>
                 </div>
               </div>
