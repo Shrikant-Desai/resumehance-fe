@@ -14,10 +14,9 @@ const DashboardLayout = () => {
     if (path.startsWith("/resumes")) return "Resume Library";
     if (path.startsWith("/jobs")) return "Job Descriptions Library";
     if (path.startsWith("/analysis")) {
-      if (path.includes("/run") || path.split("/").length > 2) {
-        return "Match Analysis Results";
-      }
-      return "New Match Analysis";
+      if (path === "/analysis/new") return "New Match Analysis";
+      if (path.split("/").length > 2 && path !== "/analysis/new") return "Match Analysis Results";
+      return "Analysis History";
     }
     if (path.startsWith("/profile")) return "Account Profile";
     if (path.startsWith("/settings")) return "System Settings";

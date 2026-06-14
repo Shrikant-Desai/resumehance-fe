@@ -4,12 +4,20 @@ import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { loginUser, clearError } from "../store/authSlice";
 import { toast } from "sonner";
-import { Sparkles, AlertCircle, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import {
+  Sparkles,
+  AlertCircle,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
+  const { loading, error, isAuthenticated } = useSelector(
+    (state) => state.auth,
+  );
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -36,10 +44,14 @@ const LoginPage = () => {
   const onSubmit = async (data) => {
     try {
       await dispatch(loginUser(data)).unwrap();
-      toast.success("Welcome back to Resumehance!");
+      toast.success("Welcome back!");
       navigate("/dashboard");
     } catch (err) {
-      toast.error(typeof err === "string" ? err : "Login failed. Please check your credentials.");
+      toast.error(
+        typeof err === "string"
+          ? err
+          : "Login failed. Please check your credentials.",
+      );
     }
   };
 
@@ -149,7 +161,10 @@ const LoginPage = () => {
         <div className="mt-8 text-center border-t border-slate-100 dark:border-slate-800/80 pt-6">
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Don&apos;t have an account?{" "}
-            <Link to="/signup" className="text-primary font-bold hover:underline">
+            <Link
+              to="/signup"
+              className="text-primary font-bold hover:underline"
+            >
               Create an account
             </Link>
           </p>

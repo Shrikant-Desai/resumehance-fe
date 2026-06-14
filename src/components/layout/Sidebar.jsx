@@ -134,7 +134,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="pt-2">
           <button
             onClick={() => {
-              navigate("/analysis");
+              navigate("/analysis/new");
               if (onClose) onClose();
             }}
             className="w-full bg-primary-gradient text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-primary/20 hover:opacity-95 hover:scale-[0.98] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"

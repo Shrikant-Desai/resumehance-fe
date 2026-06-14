@@ -116,7 +116,7 @@ const DashboardPage = () => {
         </div>
 
         <button
-          onClick={() => navigate("/analysis")}
+          onClick={() => navigate("/analysis/new")}
           className="bg-primary-gradient text-white font-bold py-3 px-5 rounded-xl shadow-lg shadow-primary/20 hover:scale-[0.98] active:scale-95 transition-transform flex items-center gap-2 cursor-pointer text-sm shrink-0 self-start sm:self-auto"
         >
           <BarChart3 size={16} />
@@ -173,7 +173,7 @@ const DashboardPage = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate("/analysis")}
+                  onClick={() => navigate("/analysis/new")}
                   className="text-primary text-xs font-bold hover:underline cursor-pointer"
                 >
                   Start your first analysis →
@@ -280,7 +280,7 @@ const DashboardPage = () => {
               Get detailed learning roadmaps to close your technical gaps and ready your applications.
             </p>
             <button
-              onClick={() => navigate("/analysis")}
+              onClick={() => navigate("/analysis/new")}
               className="bg-white text-primary text-xs font-bold px-4 py-2.5 rounded-lg shadow-sm hover:scale-95 transition-transform cursor-pointer"
             >
               Analyze Now

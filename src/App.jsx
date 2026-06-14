@@ -22,6 +22,7 @@ import SignupPage from "./pages/SignupPage";
 import DashboardPage from "./pages/DashboardPage";
 import ResumesPage from "./pages/ResumesPage";
 import JobsPage from "./pages/JobsPage";
+import AnalysisListPage from "./pages/AnalysisListPage";
 import AnalysisPage from "./pages/AnalysisPage";
 import AnalysisResultPage from "./pages/AnalysisResultPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -76,7 +77,8 @@ function AppContent() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/resumes" element={<ResumesPage />} />
             <Route path="/jobs" element={<JobsPage />} />
-            <Route path="/analysis" element={<AnalysisPage />} />
+            <Route path="/analysis" element={<AnalysisListPage />} />
+            <Route path="/analysis/new" element={<AnalysisPage />} />
             <Route path="/analysis/:id" element={<AnalysisResultPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/settings" element={<SettingsPage />} />

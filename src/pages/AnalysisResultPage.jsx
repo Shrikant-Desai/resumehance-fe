@@ -119,11 +119,11 @@ const AnalysisResultPage = () => {
         </div>
 
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate("/analysis")}
           className="text-xs font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
         >
           <ArrowLeft size={14} />
-          Dashboard History
+          All Analyses
         </button>
       </section>
 
